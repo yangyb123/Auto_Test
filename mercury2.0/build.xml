@@ -1,43 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     ============================================================================
-    JMeter 自动化测试框架 - Ant Build 脚本 (Mercury 2.0)
+    JMeter 自动化测试框架 - Ant Build 脚本
     ============================================================================
     项目名称: Mercury 2.0 自动化测试
     功能描述: 自动执行 JMeter 测试脚本、生成测试报告、发送邮件通知
     
     使用方式:
         1. 修改配置部分的路径和邮件信息
-        2. 运行: ant sendEmail (完整流程：测试 → 报告 → 邮件)
-        3. 或运行: ant reportOnly (执行测试并生成报告，不发送邮件)
-        4. 或运行: ant testOnly (仅执行测试)
+        2. 运行: ant -f build.xml sendEmail (完整流程)
+        3. 或运行: ant -f build.xml runJMeter (仅执行测试)
     
     依赖项:
         - Apache Ant 1.9+
         - Apache JMeter 5.6+
-        - JMeter Ant Task 插件 (ApacheJMeter_core.jar)
-        - Apache Commons Email 库 (可选，用于邮件功能)
+        - JMeter Ant Task 插件
+        - Apache Commons Email 库
     
     目录结构:
-        mercury2.0/
+        Jmeterautotest/mercury2.0/
         ├── build.xml (本文件)
         ├── scripts/ (存放 .jmx 测试脚本)
         ├── result/
         │   ├── jtl/ (JTL 原始结果文件)
         │   └── html/ (HTML 报告)
         └── xsl/ (XSL 报告模板)
-    
-    配置说明:
-        - 修改第一部分的 jmeter.home 为你的 JMeter 安装路径
-        - 修改第四部分的邮件配置信息
-        - 确保 scripts 目录中有 .jmx 测试脚本
-    
-    版本: 2.0
-    最后更新: 2026-01-30
     ============================================================================
 -->
-<project name="JMeterAutoTest" default="sendEmail" basedir="."
-         xmlns:if="ant:if" xmlns:unless="ant:unless">
+<project name="JMeterAutoTest" default="sendEmail" basedir=".">
     
     <!-- ========================================================================
          第一部分：JMeter 基础配置
@@ -81,64 +71,29 @@
     <!-- ========================================================================
          第四部分：邮件配置
          说明: 根据邮箱类型修改 SMTP 服务器和认证信息
-         
-         常见 SMTP 服务器配置:
-            ┌─────────────────────────────────────────────────────────────┐
-            │ QQ 邮箱                                                      │
-            │   SMTP: smtp.qq.com                                         │
-            │   端口: 465 (SSL) 或 587 (TLS)                              │
-            │   授权码: 在 QQ 邮箱设置 → 账户 → 生成授权码                │
-            ├─────────────────────────────────────────────────────────────┤
-            │ 163 邮箱                                                     │
-            │   SMTP: smtp.163.com                                        │
-            │   端口: 465 (SSL) 或 587 (TLS)                              │
-            │   授权码: 在 163 邮箱设置 → 账户 → 生成授权码               │
-            ├─────────────────────────────────────────────────────────────┤
-            │ Gmail                                                        │
-            │   SMTP: smtp.gmail.com                                      │
-            │   端口: 587 (TLS)                                           │
-            │   密码: 需要生成应用专用密码                                │
-            ├─────────────────────────────────────────────────────────────┤
-            │ 企业邮箱 (如腾讯企业邮箱)                                    │
-            │   SMTP: smtp.exmail.qq.com                                  │
-            │   端口: 465 (SSL)                                           │
-            │   密码: 邮箱密码                                            │
-            └─────────────────────────────────────────────────────────────┘
+         常见 SMTP 服务器:
+            - QQ 邮箱: smtp.qq.com (端口 465 SSL)
+            - 163 邮箱: smtp.163.com (端口 465 SSL)
+            - Gmail: smtp.gmail.com (端口 587 TLS)
+            - 企业邮箱: 根据公司配置
          ======================================================================== -->
-    
-    <!-- SMTP 服务器地址 -->
     <property name="mail.host" value="smtp.qq.com" />
+    <!-- SMTP 服务器地址 -->
     
-    <!-- SMTP 端口 (SSL: 465, TLS: 587) -->
     <property name="mail.port" value="465" />
+    <!-- SMTP 端口（SSL 通常为 465，TLS 通常为 587） -->
     
-    <!-- 是否使用 SSL 加密 (true 或 false) -->
-    <property name="mail.ssl" value="true" />
-    
-    <!-- 是否使用 TLS 加密 (true 或 false，与 SSL 不能同时为 true) -->
-    <property name="mail.tls" value="false" />
-    
-    <!-- 发件人邮箱地址 -->
     <property name="mail.from" value="1047720097@qq.com" />
+    <!-- 发件人邮箱地址 -->
     
-    <!-- 邮箱授权码（不是邮箱密码，需要在邮箱设置中生成） -->
     <property name="mail.password" value="授权码" />
+    <!-- 邮箱授权码（不是邮箱密码，需要在邮箱设置中生成） -->
     
-    <!-- 收件人邮箱（多个收件人用逗号分隔） -->
-    <!-- 示例: user1@qq.com,user2@qq.com,user3@163.com -->
     <property name="mail.to" value="1047720097@qq.com" />
+    <!-- 收件人邮箱（多个收件人用逗号分隔，如: user1@qq.com,user2@qq.com） -->
     
-    <!-- 抄送人邮箱（可选，多个用逗号分隔） -->
-    <property name="mail.cc" value="" />
-    
-    <!-- 密送人邮箱（可选，多个用逗号分隔） -->
-    <property name="mail.bcc" value="" />
-    
-    <!-- 邮件主题 -->
     <property name="mail.subject" value="Mercury 2.0 自动化测试报告 - ${timestamp.date}" />
-    
-    <!-- 邮件发送者显示名称 -->
-    <property name="mail.from.name" value="JMeter 自动化测试框架" />
+    <!-- 邮件主题 -->
     
     <!-- ========================================================================
          第五部分：初始化任务
@@ -199,14 +154,14 @@
             <property name="jmeter.save.saveservice.samplerData" value="true" />
             <!-- 保存采样器数据 -->
             
-            <property name="jmeter.save.saveservice.responseHeaders" value="false" />
-            <!-- 不保存响应头，加快执行速度 -->
+            <property name="jmeter.save.saveservice.responseHeaders" value="true" />
+            <!-- 保存响应头 -->
             
-            <property name="jmeter.save.saveservice.requestHeaders" value="false" />
-            <!-- 不保存请求头，加快执行速度 -->
+            <property name="jmeter.save.saveservice.requestHeaders" value="true" />
+            <!-- 保存请求头 -->
             
-            <property name="jmeter.save.saveservice.encoding" value="false" />
-            <!-- 不保存编码信息，加快执行速度 -->
+            <property name="jmeter.save.saveservice.encoding" value="true" />
+            <!-- 保存编码信息 -->
             
             <property name="jmeter.save.saveservice.latency" value="true" />
             <!-- 保存延迟时间 -->
@@ -240,10 +195,6 @@
         <echo message="生成详细测试报告..." />
         <echo message="========================================" />
         
-        <!-- 检查 JTL 文件是否存在 -->
-        <available file="${jtl.dir}\${report.prefix}.jtl" type="file" property="jtl.file.exists" />
-        <fail unless="jtl.file.exists" message="JTL 文件不存在: ${jtl.dir}\${report.prefix}.jtl" />
-        
         <!-- 使用 XSL 模板转换 JTL 为 HTML -->
         <xslt in="${jtl.dir}\${report.prefix}.jtl" 
               out="${html.dir}\${report.prefix}_Detail.html" 
@@ -267,7 +218,7 @@
     
     <!-- ========================================================================
          第八部分：生成汇总报告
-         说明: 仅使用已有的详细报告作为汇总报告
+         说明: 生成简洁的汇总报告，包含关键指标
          ======================================================================== -->
     <target name="generateSummaryReport" depends="generateDetailReport" 
             description="生成汇总测试报告">
@@ -275,10 +226,13 @@
         <echo message="生成汇总测试报告..." />
         <echo message="========================================" />
         
-        <!-- 复制详细报告作为汇总报告（因为 jmeter-results-summary.xsl 不存在） -->
-        <copy file="${html.dir}\${report.prefix}_Detail.html" 
-              tofile="${html.dir}\${report.prefix}_Summary.html" 
-              overwrite="true" />
+        <!-- 使用自定义 XSL 模板生成汇总报告 -->
+        <xslt in="${jtl.dir}\${report.prefix}.jtl" 
+              out="${html.dir}\${report.prefix}_Summary.html" 
+              style="${xsl.dir}\jmeter-results-summary.xsl"
+              force="true">
+            <param name="titleReport" expression="JMeter 汇总测试报告" />
+        </xslt>
         
         <echo message="✓ 汇总报告生成完成: ${html.dir}\${report.prefix}_Summary.html" />
     </target>
@@ -292,23 +246,8 @@
         <echo message="========================================" />
         <echo message="准备发送测试报告邮件..." />
         <echo message="========================================" />
-        <echo message="SMTP 服务器: ${mail.host}:${mail.port}" />
-        <echo message="发件人: ${mail.from}" />
         <echo message="收件人: ${mail.to}" />
         <echo message="邮件主题: ${mail.subject}" />
-        <echo message="========================================" />
-        
-        <!-- 检查邮件配置是否完整 -->
-        <condition property="mail.config.valid">
-            <and>
-                <not><equals arg1="${mail.host}" arg2="smtp.qq.com" /></not>
-                <not><equals arg1="${mail.password}" arg2="授权码" /></not>
-                <not><equals arg1="${mail.from}" arg2="1047720097@qq.com" /></not>
-            </and>
-        </condition>
-        
-        <!-- 如果邮件配置不完整，显示警告 -->
-        <fail if="mail.config.invalid" message="邮件配置不完整，请修改 build.xml 中的邮件配置部分！" />
         
         <!-- 发送邮件 -->
         <mail mailhost="${mail.host}" 
@@ -316,257 +255,57 @@
               subject="${mail.subject}" 
               from="${mail.from}" 
               tolist="${mail.to}"
-              cclist="${mail.cc}"
-              bcclist="${mail.bcc}"
               user="${mail.from}"
               password="${mail.password}"
-              ssl="${mail.ssl}"
-              tls="${mail.tls}"
-              charset="UTF-8"
-              messagemimetype="text/html">
+              ssl="true"
+              charset="UTF-8">
             
             <!-- 邮件正文（HTML 格式） -->
-            <message>
+            <message format="html">
                 <![CDATA[
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercury 2.0 自动化测试报告</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-            background-color: #f5f5f5;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .header {
-            border-bottom: 3px solid #0066cc;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            color: #0066cc;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .section {
-            margin-bottom: 25px;
-        }
-        
-        .section h2 {
-            color: #0066cc;
-            font-size: 18px;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        
-        .info-box {
-            background-color: #f0f8ff;
-            border-left: 4px solid #0066cc;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-        
-        .info-box p {
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .info-box strong {
-            color: #0066cc;
-        }
-        
-        .link-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .link-list li {
-            margin-bottom: 12px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            border-left: 3px solid #0066cc;
-        }
-        
-        .link-list a {
-            color: #0066cc;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .link-list a:hover {
-            text-decoration: underline;
-        }
-        
-        .link-list .desc {
-            color: #666;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        
-        .warning {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-        
-        .warning ul {
-            margin-left: 20px;
-            font-size: 14px;
-        }
-        
-        .warning li {
-            margin-bottom: 8px;
-        }
-        
-        .footer {
-            border-top: 2px solid #e0e0e0;
-            padding-top: 20px;
-            margin-top: 30px;
-            color: #999;
-            font-size: 12px;
-            text-align: center;
-        }
-        
-        .footer p {
-            margin-bottom: 5px;
-        }
-        
-        .icon {
-            margin-right: 8px;
-        }
-        
-        .success {
-            color: #28a745;
-        }
-        
-        .info {
-            color: #0066cc;
-        }
-        
-        .warning-text {
-            color: #ffc107;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- 头部 -->
-        <div class="header">
-            <h1><span class="icon">📊</span>Mercury 2.0 自动化测试报告</h1>
-            <p>自动化测试框架 - 测试结果通知</p>
-        </div>
-        
-        <!-- 测试信息 -->
-        <div class="section">
-            <h2><span class="icon info">ℹ️</span>测试信息</h2>
-            <div class="info-box">
-                <p><strong>测试日期:</strong> ${timestamp.date}</p>
-                <p><strong>测试时间:</strong> ${timestamp.time}</p>
-                <p><strong>报告名称:</strong> ${report.prefix}</p>
-                <p><strong>项目名称:</strong> Mercury 2.0</p>
-                <p><strong>测试类型:</strong> 性能测试 / 功能测试</p>
-            </div>
-        </div>
-        
-        <!-- 报告链接 -->
-        <div class="section">
-            <h2><span class="icon">📄</span>测试报告</h2>
-            <ul class="link-list">
-                <li>
-                    <a href="file:///${html.dir}\${report.prefix}_Detail.html">
-                        <span class="icon">📋</span>详细测试报告
-                    </a>
-                    <div class="desc">包含所有测试用例的详细信息、响应时间、错误日志等</div>
-                </li>
-                <li>
-                    <a href="file:///${html.dir}\${report.prefix}_Summary.html">
-                        <span class="icon">📈</span>汇总测试报告
-                    </a>
-                    <div class="desc">包含关键指标、统计数据、性能分析等</div>
-                </li>
-            </ul>
-        </div>
-        
-        <!-- 报告位置 -->
-        <div class="section">
-            <h2><span class="icon">📁</span>报告文件位置</h2>
-            <div class="info-box">
-                <p style="word-break: break-all; font-family: monospace; background-color: #f5f5f5; padding: 10px; border-radius: 4px;">
-                    ${html.dir}
-                </p>
-            </div>
-        </div>
-        
-        <!-- 注意事项 -->
-        <div class="section">
-            <h2><span class="icon warning-text">⚠️</span>注意事项</h2>
-            <div class="warning">
-                <ul>
-                    <li>如果上述链接无法打开，请手动访问报告文件位置</li>
-                    <li>报告文件为 HTML 格式，可用任何浏览器打开（推荐 Chrome、Firefox）</li>
-                    <li>详细报告包含完整的测试数据，文件较大，首次加载可能需要几秒钟</li>
-                    <li>报告中的图表需要 JavaScript 支持，请确保浏览器已启用 JavaScript</li>
-                    <li>建议保存报告文件以便后续查阅和对比</li>
-                </ul>
-            </div>
-        </div>
-        
-        <!-- 快速导航 -->
-        <div class="section">
-            <h2><span class="icon">🔗</span>快速导航</h2>
-            <div class="info-box">
-                <p><strong>原始数据文件:</strong></p>
-                <p style="word-break: break-all; font-family: monospace; background-color: #f5f5f5; padding: 10px; border-radius: 4px; margin-top: 8px;">
-                    ${jtl.dir}\${report.prefix}.jtl
-                </p>
-                <p style="margin-top: 15px;"><strong>测试脚本目录:</strong></p>
-                <p style="word-break: break-all; font-family: monospace; background-color: #f5f5f5; padding: 10px; border-radius: 4px; margin-top: 8px;">
-                    ${script.dir}
-                </p>
-            </div>
-        </div>
-        
-        <!-- 页脚 -->
-        <div class="footer">
-            <p>此邮件由 JMeter 自动化测试框架自动生成</p>
-            <p>请勿直接回复此邮件，如有问题请联系测试团队</p>
-            <p style="margin-top: 10px; color: #ccc;">Mercury 2.0 © 2026</p>
-        </div>
-    </div>
-</body>
-</html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; color: #333; }
+                        h2 { color: #0066cc; border-bottom: 2px solid #0066cc; padding-bottom: 10px; }
+                        .info { background-color: #f0f8ff; padding: 10px; margin: 10px 0; border-left: 4px solid #0066cc; }
+                        .link { color: #0066cc; text-decoration: none; font-weight: bold; }
+                        .footer { color: #999; font-size: 12px; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
+                    </style>
+                </head>
+                <body>
+                    <h2>Mercury 2.0 自动化测试报告</h2>
+                    
+                    <div class="info">
+                        <p><strong>测试时间:</strong> ${timestamp.date} ${timestamp.time}</p>
+                        <p><strong>报告名称:</strong> ${report.prefix}</p>
+                    </div>
+                    
+                    <h3>📊 报告链接</h3>
+                    <ul>
+                        <li><a class="link" href="file:///${html.dir}\${report.prefix}_Detail.html">📄 详细报告</a> - 包含所有测试用例的详细信息</li>
+                        <li><a class="link" href="file:///${html.dir}\${report.prefix}_Summary.html">📈 汇总报告</a> - 包含关键指标和统计数据</li>
+                    </ul>
+                    
+                    <h3>📁 报告文件位置</h3>
+                    <div class="info">
+                        <p>${html.dir}</p>
+                    </div>
+                    
+                    <h3>⚠️ 注意事项</h3>
+                    <ul>
+                        <li>如果上述链接无法打开，请手动访问报告文件位置</li>
+                        <li>报告文件为 HTML 格式，可用任何浏览器打开</li>
+                        <li>详细报告包含完整的测试数据，文件较大</li>
+                    </ul>
+                    
+                    <div class="footer">
+                        <p>此邮件由 JMeter 自动化测试框架自动生成，请勿直接回复。</p>
+                        <p>如有问题，请联系测试团队。</p>
+                    </div>
+                </body>
+                </html>
                 ]]>
             </message>
             
@@ -579,9 +318,9 @@
             </attachments>
         </mail>
         
-        <echo message="✓ 邮件发送成功！" />
+        <echo message="✓ 邮件发送完成！" />
         <echo message="========================================" />
-        <echo message="🎉 测试流程全部完成！" />
+        <echo message="测试流程全部完成！" />
         <echo message="========================================" />
     </target>
     
@@ -616,164 +355,33 @@
     </target>
     
     <!-- ========================================================================
-         第十三部分：配置检查
-         说明: 检查 build.xml 配置是否正确
+         第十三部分：完整流程（all 目标）
+         说明: 别名目标，用于 Jenkins 兼容性
          ======================================================================== -->
-    <target name="checkConfig" description="检查配置是否正确">
-        <echo message="========================================" />
-        <echo message="检查 build.xml 配置..." />
-        <echo message="========================================" />
-        
-        <!-- 检查 JMeter 路径 -->
-        <available file="${jmeter.home}" type="dir" property="jmeter.exists" />
-        <condition property="jmeter.check.failed">
-            <not>
-                <isset property="jmeter.exists" />
-            </not>
-        </condition>
-        <echo if:set="jmeter.check.failed" message="❌ JMeter 路径不存在: ${jmeter.home}" />
-        <echo unless:set="jmeter.check.failed" message="✓ JMeter 路径正确: ${jmeter.home}" />
-        
-        <!-- 检查脚本目录 -->
-        <available file="${script.dir}" type="dir" property="script.dir.exists" />
-        <condition property="script.check.failed">
-            <not>
-                <isset property="script.dir.exists" />
-            </not>
-        </condition>
-        <echo if:set="script.check.failed" message="❌ 脚本目录不存在: ${script.dir}" />
-        <echo unless:set="script.check.failed" message="✓ 脚本目录存在: ${script.dir}" />
-        
-        <!-- 检查 XSL 文件 -->
-        <available file="${xsl.dir}\jmeter-results-detail-report_21.xsl" type="file" property="xsl.exists" />
-        <condition property="xsl.check.failed">
-            <not>
-                <isset property="xsl.exists" />
-            </not>
-        </condition>
-        <echo if:set="xsl.check.failed" message="⚠️  XSL 模板文件不存在: ${xsl.dir}\jmeter-results-detail-report_21.xsl" />
-        <echo unless:set="xsl.check.failed" message="✓ XSL 模板文件存在" />
-        
-        <!-- 检查邮件配置 -->
-        <condition property="mail.check.failed">
-            <or>
-                <equals arg1="${mail.host}" arg2="smtp.qq.com" />
-                <equals arg1="${mail.password}" arg2="授权码" />
-                <equals arg1="${mail.from}" arg2="1047720097@qq.com" />
-            </or>
-        </condition>
-        <echo if:set="mail.check.failed" message="⚠️  邮件配置未修改，请更新 build.xml 中的邮件配置部分" />
-        <echo unless:set="mail.check.failed" message="✓ 邮件配置已修改" />
-        
-        <echo message="========================================" />
-        <echo message="配置检查完成！" />
-        <echo message="========================================" />
+    <target name="all" depends="sendEmail" 
+            description="完整流程（测试 → 报告 → 邮件）">
+        <echo message="完整流程执行完成！" />
     </target>
     
     <!-- ========================================================================
          第十四部分：帮助信息
-         说明: 显示可用的任务列表和使用说明
+         说明: 显示可用的任务列表
          ======================================================================== -->
     <target name="help" description="显示帮助信息">
+        <echo message="========================================" />
+        <echo message="JMeter 自动化测试框架 - 可用任务" />
+        <echo message="========================================" />
         <echo message="" />
-        <echo message="╔════════════════════════════════════════════════════════════════╗" />
-        <echo message="║     JMeter 自动化测试框架 - Mercury 2.0                        ║" />
-        <echo message="║     可用任务列表                                               ║" />
-        <echo message="╚════════════════════════════════════════════════════════════════╝" />
+        <echo message="主要任务:" />
+        <echo message="  ant sendEmail      - 完整流程（测试 → 报告 → 邮件）" />
+        <echo message="  ant reportOnly     - 执行测试并生成报告（不发送邮件）" />
+        <echo message="  ant testOnly       - 仅执行测试（不生成报告）" />
         <echo message="" />
-        <echo message="【主要任务】" />
-        <echo message="  ┌─────────────────────────────────────────────────────────────┐" />
-        <echo message="  │ ant sendEmail                                                │" />
-        <echo message="  │   完整流程：测试 → 报告 → 邮件                              │" />
-        <echo message="  │   执行 JMeter 测试，生成详细和汇总报告，发送邮件通知        │" />
-        <echo message="  │   这是默认任务，直接运行 ant 即可                           │" />
-        <echo message="  └─────────────────────────────────────────────────────────────┘" />
+        <echo message="辅助任务:" />
+        <echo message="  ant init           - 初始化目录结构" />
+        <echo message="  ant clean          - 清理旧的测试结果" />
+        <echo message="  ant help           - 显示此帮助信息" />
         <echo message="" />
-        <echo message="  ┌─────────────────────────────────────────────────────────────┐" />
-        <echo message="  │ ant reportOnly                                               │" />
-        <echo message="  │   执行测试并生成报告（不发送邮件）                          │" />
-        <echo message="  │   适合本地调试和快速验证                                    │" />
-        <echo message="  └─────────────────────────────────────────────────────────────┘" />
-        <echo message="" />
-        <echo message="  ┌─────────────────────────────────────────────────────────────┐" />
-        <echo message="  │ ant testOnly                                                 │" />
-        <echo message="  │   仅执行测试（不生成报告和发送邮件）                        │" />
-        <echo message="  │   适合快速测试和调试                                        │" />
-        <echo message="  └─────────────────────────────────────────────────────────────┘" />
-        <echo message="" />
-        <echo message="【辅助任务】" />
-        <echo message="  ┌─────────────────────────────────────────────────────────────┐" />
-        <echo message="  │ ant init                                                     │" />
-        <echo message="  │   初始化目录结构                                            │" />
-        <echo message="  │   创建 scripts、result/jtl、result/html、xsl 等目录        │" />
-        <echo message="  └─────────────────────────────────────────────────────────────┘" />
-        <echo message="" />
-        <echo message="  ┌─────────────────────────────────────────────────────────────┐" />
-        <echo message="  │ ant clean                                                    │" />
-        <echo message="  │   清理旧的测试结果                                          │" />
-        <echo message="  │   删除 result 目录下的所有文件                              │" />
-        <echo message="  └─────────────────────────────────────────────────────────────┘" />
-        <echo message="" />
-        <echo message="  ┌─────────────────────────────────────────────────────────────┐" />
-        <echo message="  │ ant checkConfig                                              │" />
-        <echo message="  │   检查配置是否正确                                          │" />
-        <echo message="  │   验证 JMeter 路径、脚本目录、邮件配置等                    │" />
-        <echo message="  └─────────────────────────────────────────────────────────────┘" />
-        <echo message="" />
-        <echo message="  ┌─────────────────────────────────────────────────────────────┐" />
-        <echo message="  │ ant help                                                     │" />
-        <echo message="  │   显示此帮助信息                                            │" />
-        <echo message="  └─────────────────────────────────────────────────────────────┘" />
-        <echo message="" />
-        <echo message="【快速开始】" />
-        <echo message="  1. 修改 build.xml 中的配置部分：" />
-        <echo message="     - 第一部分：JMeter 安装路径" />
-        <echo message="     - 第四部分：邮件配置信息" />
-        <echo message="" />
-        <echo message="  2. 将 .jmx 测试脚本放入 scripts 目录" />
-        <echo message="" />
-        <echo message="  3. 运行测试：" />
-        <echo message="     - 完整流程: ant sendEmail" />
-        <echo message="     - 仅测试:   ant testOnly" />
-        <echo message="     - 测试+报告: ant reportOnly" />
-        <echo message="" />
-        <echo message="【邮件配置说明】" />
-        <echo message="  QQ 邮箱:" />
-        <echo message="    - SMTP: smtp.qq.com" />
-        <echo message="    - 端口: 465 (SSL)" />
-        <echo message="    - 授权码: 在 QQ 邮箱设置 → 账户 → 生成授权码" />
-        <echo message="" />
-        <echo message="  163 邮箱:" />
-        <echo message="    - SMTP: smtp.163.com" />
-        <echo message="    - 端口: 465 (SSL)" />
-        <echo message="    - 授权码: 在 163 邮箱设置 → 账户 → 生成授权码" />
-        <echo message="" />
-        <echo message="  Gmail:" />
-        <echo message="    - SMTP: smtp.gmail.com" />
-        <echo message="    - 端口: 587 (TLS)" />
-        <echo message="    - 密码: 应用专用密码" />
-        <echo message="" />
-        <echo message="【常见问题】" />
-        <echo message="  Q: 如何修改 JMeter 路径？" />
-        <echo message="  A: 编辑 build.xml，找到第一部分的 jmeter.home 属性，修改为你的 JMeter 安装路径" />
-        <echo message="" />
-        <echo message="  Q: 邮件无法发送？" />
-        <echo message="  A: 检查以下几点：" />
-        <echo message="     1. SMTP 服务器地址和端口是否正确" />
-        <echo message="     2. 邮箱授权码是否正确（不是邮箱密码）" />
-        <echo message="     3. 网络连接是否正常" />
-        <echo message="     4. 防火墙是否阻止了 SMTP 端口" />
-        <echo message="" />
-        <echo message="  Q: 报告文件在哪里？" />
-        <echo message="  A: 在 result/html 目录下，文件名为 TestReport_YYYY-MM-DD_HH-mm-ss_Detail.html" />
-        <echo message="" />
-        <echo message="【更多信息】" />
-        <echo message="  - 运行 ant checkConfig 检查配置是否正确" />
-        <echo message="  - 查看 build.xml 中的详细注释了解更多配置选项" />
-        <echo message="" />
-        <echo message="╔════════════════════════════════════════════════════════════════╗" />
-        <echo message="║                    祝你使用愉快！                              ║" />
-        <echo message="╚════════════════════════════════════════════════════════════════╝" />
-        <echo message="" />
+        <echo message="========================================" />
     </target>
 </project>
