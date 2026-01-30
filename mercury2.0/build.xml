@@ -229,7 +229,7 @@
         <!-- 使用自定义 XSL 模板生成汇总报告 -->
         <xslt in="${jtl.dir}\${report.prefix}.jtl" 
               out="${html.dir}\${report.prefix}_Summary.html" 
-              style="${xsl.dir}\jmeter-results-summary.xsl"
+              style="${xsl.dir}\jmeter-results-detail-report_21.xsl"
               force="true">
             <param name="titleReport" expression="JMeter 汇总测试报告" />
         </xslt>
