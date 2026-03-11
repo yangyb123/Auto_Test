@@ -139,7 +139,7 @@
               dir="${basedir}">
             <env key="HEAP" value="-Xmx256m -Xms128m" />
             <arg value="/c" />
-            <arg value="${jmeter.home}\bin\jmeter.bat -n -t scripts\shuixing-002.jmx -l result\jtl\${report.prefix}.jtl -j result\jtl\${report.prefix}.log -Djmeter.save.saveservice.output_format=xml -Djmeter.save.saveservice.response_data.on_error=false -Djmeter.save.saveservice.samplerData=false -Djmeter.save.saveservice.responseHeaders=false -Djmeter.save.saveservice.requestHeaders=false -Djmeter.save.saveservice.encoding=false -Djmeter.save.saveservice.latency=true -Djmeter.save.saveservice.connect_time=true -Dhttpclient.socket.timeout=10000 -Dhttpclient.connection.timeout=10000 -Djmeter.gui.action.action.listener.classname=org.apache.jmeter.visualizers.SimpleResultCollector -Dlog_level.jmeter=WARN" />
+            <arg value="${jmeter.home}\bin\jmeter.bat -n -t scripts\*.jmx -l result\jtl\${report.prefix}.jtl -j result\jtl\${report.prefix}.log -Djmeter.save.saveservice.output_format=xml -Djmeter.save.saveservice.response_data.on_error=false -Djmeter.save.saveservice.samplerData=false -Djmeter.save.saveservice.responseHeaders=false -Djmeter.save.saveservice.requestHeaders=false -Djmeter.save.saveservice.encoding=false -Djmeter.save.saveservice.latency=true -Djmeter.save.saveservice.connect_time=true -Dhttpclient.socket.timeout=10000 -Dhttpclient.connection.timeout=10000 -Djmeter.gui.action.action.listener.classname=org.apache.jmeter.visualizers.SimpleResultCollector -Dlog_level.jmeter=WARN" />
         </exec>
         
         <!-- 验证 JTL 文件是否生成 -->
