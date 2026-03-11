@@ -249,7 +249,7 @@
               charset="UTF-8">
             
             <!-- 邮件正文（HTML 格式） -->
-            <message format="html">
+            <message>
                 <![CDATA[
                 <html>
                 <head>
