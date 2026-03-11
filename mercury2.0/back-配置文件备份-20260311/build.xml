@@ -80,13 +80,13 @@
     <property name="mail.host" value="smtp.qq.com" />
     <!-- SMTP 服务器地址 -->
     
-    <property name="mail.port" value="587" />
-    <!-- SMTP 端口（TLS 通常为 587，SSL 通常为 465） -->
+    <property name="mail.port" value="465" />
+    <!-- SMTP 端口（SSL 通常为 465，TLS 通常为 587） -->
     
     <property name="mail.from" value="1047720097@qq.com" />
     <!-- 发件人邮箱地址 -->
     
-    <property name="mail.password" value="juhzfcffbcuxbfba" />
+    <property name="mail.password" value="授权码" />
     <!-- 邮箱授权码（不是邮箱密码，需要在邮箱设置中生成） -->
     
     <property name="mail.to" value="1047720097@qq.com" />
@@ -237,7 +237,7 @@
         <echo message="收件人: ${mail.to}" />
         <echo message="邮件主题: ${mail.subject}" />
         
-        <!-- 发送邮件 - 使用 TLS 而不是 SSL，避免 JSSE 问题 -->
+        <!-- 发送邮件 -->
         <mail mailhost="${mail.host}" 
               mailport="${mail.port}" 
               subject="${mail.subject}" 
@@ -245,8 +245,7 @@
               tolist="${mail.to}"
               user="${mail.from}"
               password="${mail.password}"
-              ssl="false"
-              enableStartTLS="true"
+              ssl="true"
               charset="UTF-8">
             
             <!-- 邮件正文（HTML 格式） -->
