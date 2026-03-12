@@ -259,18 +259,28 @@
         <echo message="从 Summary.html 中提取测试统计数据..." />
         <echo message="========================================" />
         
-        <!-- 调用 Python 脚本从 Summary.html 中提取数据 -->
-        <exec executable="python" outputproperty="stats.json" failonerror="false">
-            <arg value="${basedir}/extract_stats.py" />
+        <!-- 调用 Python 脚本从 Summary.html 中提取数据并生成属性文件 -->
+        <exec executable="python" failonerror="false">
+            <arg value="${basedir}/extract_stats_to_properties.py" />
             <arg value="${html.dir}/${report.prefix}_Summary.html" />
+            <arg value="${basedir}/stats.properties" />
         </exec>
         
-        <!-- 如果 Python 脚本执行失败，使用默认值 -->
-        <condition property="stats.available" value="true" else="false">
-            <isset property="stats.json" />
-        </condition>
+        <!-- 加载生成的属性文件 -->
+        <property file="${basedir}/stats.properties" />
+        
+        <!-- 设置默认值（如果属性未被设置） -->
+        <property name="stats.total" value="-" />
+        <property name="stats.success" value="-" />
+        <property name="stats.failure" value="-" />
+        <property name="stats.success_rate" value="-" />
         
         <echo message="✓ 统计数据提取完成" />
+        <echo message="  总请求数: ${stats.total}" />
+        <echo message="  成功数: ${stats.success}" />
+        <echo message="  失败数: ${stats.failure}" />
+        <echo message="  成功率: ${stats.success_rate}%" />
+        <echo message="========================================" />
     </target>
     
     <!-- ========================================================================
@@ -313,14 +323,11 @@
         <echo message="抄送: ${mail.cc}" />
         <echo message="邮件主题: ${mail.subject}" />
         
-        <!-- 设置默认的统计数据值 -->
+        <!-- 设置默认的统计数据值（如果未被 extractStats 设置） -->
         <property name="stats.total" value="-" />
         <property name="stats.success" value="-" />
         <property name="stats.failure" value="-" />
         <property name="stats.success_rate" value="-" />
-        <property name="stats.avg_time" value="-" />
-        <property name="stats.max_time" value="-" />
-        <property name="stats.min_time" value="-" />
         
         <!-- 发送邮件 - 使用 TLS 而不是 SSL，避免 JSSE 问题 -->
         <mail mailhost="${mail.host}" 
@@ -451,18 +458,6 @@
                                     <div class="info-row">
                                         <span class="info-label">接口成功率:</span>
                                         <span class="info-value" style="color: #28a745; font-weight: bold;">${stats.success_rate}%</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">平均响应时间:</span>
-                                        <span class="info-value">${stats.avg_time} ms</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">最大响应时间:</span>
-                                        <span class="info-value">${stats.max_time} ms</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">最小响应时间:</span>
-                                        <span class="info-value">${stats.min_time} ms</span>
                                     </div>
                                 </div>
                             </div>
