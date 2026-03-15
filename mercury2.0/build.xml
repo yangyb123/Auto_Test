@@ -73,6 +73,17 @@
     <property name="report.prefix" value="TestReport_${timestamp.full}" />
     <!-- 报告文件前缀（包含日期和时间，确保唯一性） -->
     
+	<target name="generate-allure-report">
+    <exec executable="allure">
+        <arg value="generate"/>
+        <arg value="${basedir}/result/allure-results"/>
+        <arg value="-o"/>
+        <arg value="${basedir}/result/allure-report"/>
+        <arg value="--clean"/>
+    </exec>
+    </target>
+
+	
     <!-- ========================================================================
          第四部分：邮件配置
          说明: 根据邮箱类型修改 SMTP 服务器和认证信息
