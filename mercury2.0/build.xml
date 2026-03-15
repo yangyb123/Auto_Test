@@ -73,82 +73,14 @@
     <property name="report.prefix" value="TestReport_${timestamp.full}" />
     <!-- 报告文件前缀（包含日期和时间，确保唯一性） -->
     
-	<target name="convertToAllure" depends="generateSummaryReport" 
-            description="将 JTL 结果转换为 Allure 格式">
-        <echo message="========================================" />
-        <echo message="将 JTL 结果转换为 Allure 格式..." />
-        <echo message="========================================" />
-        
-        <!-- 清空 allure-results 目录 -->
-        <delete dir="${result.dir}/allure-results" />
-        <mkdir dir="${result.dir}/allure-results" />
-        
-        <!-- 创建 Allure 结果文件（JSON 格式） -->
-        <!-- 这里使用 Python 脚本将 JTL 转换为 Allure 格式 -->
-        <exec executable="python" failonerror="false">
-            <arg value="-c" />
-            <arg value="
-import json
-import xml.etree.ElementTree as ET
-from datetime import datetime
-
-# 读取 JTL 文件
-jtl_file = '${jtl.dir}/${report.prefix}.jtl'
-allure_dir = '${result.dir}/allure-results'
-
-try:
-    tree = ET.parse(jtl_file)
-    root = tree.getroot()
-    
-    # 创建 Allure 结果文件
-    for idx, sample in enumerate(root.findall('httpSample')):
-        test_name = sample.get('lb', 'Unknown')
-        success = sample.get('success', 'false') == 'true'
-        response_time = sample.get('t', '0')
-        
-        result = {
-            'name': test_name,
-            'status': 'passed' if success else 'failed',
-            'stage': 'finished',
-            'start': int(datetime.now().timestamp() * 1000),
-            'stop': int(datetime.now().timestamp() * 1000),
-            'duration': int(response_time),
-            'uuid': f'test-{idx}'
-        }
-        
-        # 写入 Allure 结果文件
-        with open(f'{allure_dir}/test-result-{idx}.json', 'w') as f:
-            json.dump(result, f)
-    
-    print('✓ JTL 转换为 Allure 格式完成')
-except Exception as e:
-    print(f'⚠ 转换失败: {e}')
-" />
-        </exec>
-        
-        <echo message="✓ Allure 格式转换完成" />
-    </target>
-
-	<target name="generate-allure-report" depends="convertToAllure"
-            description="生成 Allure 测试报告">
-        <echo message="========================================" />
-        <echo message="生成 Allure 测试报告..." />
-        <echo message="========================================" />
-        
-        <!-- 检查 allure-results 目录是否存在且非空 -->
-        <available file="${result.dir}/allure-results" type="dir" property="allure.results.exists" />
-        
-        <fail unless="allure.results.exists" 
-              message="错误: allure-results 目录不存在" />
-        
-        <!-- 执行 Allure 生成命令 -->
-        <exec executable="cmd.exe" failonerror="false">
-            <arg value="/c" />
-            <arg value="allure generate -c -o ${result.dir}/allure-report ${result.dir}/allure-results" />
-        </exec>
-        
-        <echo message="✓ Allure 报告生成完成！" />
-        <echo message="报告位置: ${result.dir}/allure-report" />
+	<target name="generate-allure-report">
+    <exec executable="allure">
+        <arg value="generate"/>
+        <arg value="${basedir}/result/allure-results"/>
+        <arg value="-o"/>
+        <arg value="${basedir}/result/allure-report"/>
+        <arg value="--clean"/>
+    </exec>
     </target>
 
 	
@@ -218,9 +150,6 @@ except Exception as e:
         
         <mkdir dir="${xsl.dir}" />
         <echo message="✓ 创建 XSL 模板目录: ${xsl.dir}" />
-        
-        <mkdir dir="${result.dir}/allure-results" />
-        <echo message="✓ 创建 Allure 结果目录: ${result.dir}/allure-results" />
         
         <echo message="初始化完成！" />
     </target>
@@ -396,7 +325,7 @@ except Exception as e:
          第九部分：发送邮件通知
          说明: 将测试报告通过邮件发送给相关人员
          ======================================================================== -->
-    <target name="sendEmail" depends="generate-allure-report" 
+    <target name="sendEmail" depends="compressJTL" 
             description="发送测试报告邮件">
         <echo message="========================================" />
         <echo message="准备发送测试报告邮件..." />
@@ -657,40 +586,6 @@ except Exception as e:
          第十部分：清理任务
          说明: 清理旧的测试结果和报告
          ======================================================================== -->
-    <target name="clean" description="清理旧的测试结果">
-        <echo message="========================================" />
-        <echo message="清理旧的测试结果..." />
-        <echo message="========================================" />
-        
-        <delete dir="${html.dir}" />
-        <delete dir="${result.dir}/allure-results" />
-        <delete dir="${result.dir}/allure-report" />
-        
-        <echo message="✓ 清理完成！" />
-    </target>
-    
-    <!-- ========================================================================
-         快速命令：仅生成 Allure 报告（用于 Jenkins 调试）
-         说明: 如果 allure-results 目录已存在，可直接生成报告
-         ======================================================================== -->
-    <target name="allure-only" description="仅生成 Allure 报告（不运行测试）">
-        <echo message="========================================" />
-        <echo message="仅生成 Allure 报告..." />
-        <echo message="========================================" />
-        
-        <available file="${result.dir}/allure-results" type="dir" property="allure.results.exists" />
-        
-        <fail unless="allure.results.exists" 
-              message="错误: allure-results 目录不存在。请先运行测试生成结果文件。" />
-        
-        <exec executable="cmd.exe" failonerror="false">
-            <arg value="/c" />
-            <arg value="allure generate -c -o ${result.dir}/allure-report ${result.dir}/allure-results" />
-        </exec>
-        
-        <echo message="✓ Allure 报告生成完成！" />
-        <echo message="报告位置: ${result.dir}/allure-report" />
-    </target> -->
     <target name="clean" description="清理旧的测试结果">
         <echo message="清理旧的测试结果..." />
         <delete dir="${result.dir}" />
